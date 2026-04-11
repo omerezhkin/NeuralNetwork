@@ -6,13 +6,12 @@
 #include "nn/layers/any_gradients.hpp"
 
 #include <stdexcept>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 
 namespace nn::layers {
 
-/// Виртуальный интерфейс стёртого слоя. Входы/выходы и dL/dY — \c nn::MatrixXf (батч×признаки).
+/// Виртуальный интерфейс стёртого слоя
 template<class Base>
 class IAnyLayer : public Base {
 public:
@@ -23,10 +22,9 @@ public:
   virtual std::pair<nn::MatrixXf, AnyGradients> backward(const AnyCache& cache,
                                                          const nn::MatrixXf& dLdY) = 0;
 
-  virtual void update(const AnyGradients& grads) = 0;
+  virtual void update(const AnyGradients& grads, float learning_rate) = 0;
 };
 
-/// Модель: делегирует в TObject, упаковывает кэш/градиенты в Any*.
 template<class Base, class TObject>
 class AnyLayerModel : public Base {
   using CBase = Base;
@@ -39,36 +37,16 @@ public:
   }
 
   std::pair<nn::MatrixXf, AnyCache> forward(const nn::MatrixXf& x) override {
-    auto out = CBase::Object().forward(x);
-    return {std::move(out.first), AnyCache(std::move(out.second))};
+    return CBase::Object().forward(x);
   }
 
   std::pair<nn::MatrixXf, AnyGradients> backward(const AnyCache& cache,
                                                  const nn::MatrixXf& dLdY) override {
-    using ForwardRet =
-        std::invoke_result_t<decltype(&TObject::forward), const TObject&, const nn::MatrixXf&>;
-    using CacheType = std::tuple_element_t<1, ForwardRet>;
-    const CacheType* c = AnyCache_cast<CacheType>(&cache);
-    if (!c) {
-      throw std::bad_cast();
-    }
-    auto out = CBase::Object().backward(*c, dLdY);
-    return {std::move(out.first), AnyGradients(std::move(out.second))};
+    return CBase::Object().backward(cache, dLdY);
   }
 
-  void update(const AnyGradients& grads) override {
-    using ForwardRet =
-        std::invoke_result_t<decltype(&TObject::forward), const TObject&, const nn::MatrixXf&>;
-    using CacheType = std::tuple_element_t<1, ForwardRet>;
-    using BackwardRet =
-        std::invoke_result_t<decltype(&TObject::backward), const TObject&, const CacheType&,
-                             const nn::MatrixXf&>;
-    using GradType = std::tuple_element_t<1, BackwardRet>;
-    const GradType* g = AnyGradients_cast<GradType>(&grads);
-    if (!g) {
-      throw std::bad_cast();
-    }
-    CBase::Object().update(*g);
+  void update(const AnyGradients& grads, float learning_rate) override {
+    CBase::Object().update(grads, learning_rate);
   }
 };
 
@@ -123,11 +101,11 @@ public:
     return (*this)->backward(cache, dLdY);
   }
 
-  void update(const AnyGradients& grads) {
+  void update(const AnyGradients& grads, float learning_rate) {
     if (!isDefined()) {
       throw std::logic_error("AnyLayer: empty");
     }
-    (*this)->update(grads);
+    (*this)->update(grads, learning_rate);
   }
 };
 
