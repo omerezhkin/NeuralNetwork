@@ -6,7 +6,6 @@
 
 namespace nn::layers {
 
-/// Стирание типа структуры градиентов слоя. Сами сигналы в backprop — \c nn::MatrixXf в \c any_layer.hpp.
 class AnyGradients {
   struct Concept {
     virtual ~Concept() = default;

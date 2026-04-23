@@ -11,7 +11,7 @@ nn::MatrixXf Sigmoid::predict(const nn::MatrixXf& x) const {
 
 std::pair<nn::MatrixXf, AnyCache> Sigmoid::forward(const nn::MatrixXf& x) const {
   nn::MatrixXf y = predict(x);
-  return {y, AnyCache(Cache{std::move(y)})};
+  return {y, AnyCache(Cache{y})};
 }
 
 std::pair<nn::MatrixXf, AnyGradients> Sigmoid::backward(const AnyCache& cache,

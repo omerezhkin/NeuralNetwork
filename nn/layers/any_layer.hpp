@@ -11,7 +11,6 @@
 
 namespace nn::layers {
 
-/// Виртуальный интерфейс стёртого слоя
 template<class Base>
 class IAnyLayer : public Base {
 public:
