@@ -72,9 +72,9 @@ public:
     virtual ~IEmpty() = default;
   };
 
-  TInterface<IEmpty>* operator->() { return pIObject_.get(); }
+  TInterface<IEmpty>* operator->() noexcept { return pIObject_.get(); }
 
-  const TInterface<IEmpty>* operator->() const { return pIObject_.get(); }
+  const TInterface<IEmpty>* operator->() const noexcept { return pIObject_.get(); }
 
   template<class TObject, class... TArgs>
   void emplace(TArgs&&... args) {

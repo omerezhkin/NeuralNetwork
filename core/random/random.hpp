@@ -2,38 +2,74 @@
 
 #include <Eigen/Dense>
 
+#include <cmath>
 #include <cstdint>
-#include <memory>
+#include <random>
+#include <stdexcept>
 
 namespace nn::random {
 
-/// Потоковый ГПСЧ; реализация в random.cpp
+enum class InitScheme { Normal, Xavier, He };
+
+struct Gain {
+  float value = 1.F;
+};
+
+/// Потоковый ГПСЧ (header-only).
 class Rng {
 public:
-  Rng();
-  explicit Rng(uint64_t seed);
+  Rng() = default;
 
-  Rng(const Rng&) = delete;
-  Rng& operator=(const Rng&) = delete;
+  explicit Rng(uint64_t s) { reseed(s); }
 
-  Rng(Rng&&) noexcept;
-  Rng& operator=(Rng&&) noexcept;
+  void reseed(uint64_t s) { engine_.seed(static_cast<std::mt19937::result_type>(s)); }
 
-  ~Rng();
+  [[nodiscard]] float uniform(float lo, float hi) {
+    const float u = uniform_dist_(engine_);
+    return lo + u * (hi - lo);
+  }
 
-  void seed(uint64_t s);
+  [[nodiscard]] float normal(float mean = 0.F, float stddev = 1.F) {
+    return mean + stddev * normal_dist_(engine_);
+  }
 
-  [[nodiscard]] float uniform(float lo, float hi);
+  void fill_uniform(Eigen::Ref<Eigen::MatrixXf> out, float lo, float hi) {
+    for (Eigen::Index i = 0; i < out.size(); ++i) {
+      out.data()[i] = uniform(lo, hi);
+    }
+  }
 
-  [[nodiscard]] float normal(float mean = 0.F, float stddev = 1.F);
+  void fill_normal(Eigen::Ref<Eigen::MatrixXf> out, float mean, float stddev) {
+    for (Eigen::Index i = 0; i < out.size(); ++i) {
+      out.data()[i] = normal(mean, stddev);
+    }
+  }
 
-  void fill_uniform(Eigen::Ref<Eigen::MatrixXf> out, float lo, float hi);
+  void init_linear_weights(Eigen::Ref<Eigen::MatrixXf> W, Eigen::Index in_features,
+                           Eigen::Index out_features, InitScheme scheme, Gain gain = Gain{}) {
+    if (in_features <= 0 || out_features <= 0) {
+      throw std::invalid_argument("Rng::init_linear_weights: dimensions must be positive");
+    }
 
-  void fill_normal(Eigen::Ref<Eigen::MatrixXf> out, float mean, float stddev);
+    float stddev = 1.F;
+    switch (scheme) {
+      case InitScheme::Normal:
+        stddev = gain.value;
+        break;
+      case InitScheme::Xavier:
+        stddev = std::sqrt(2.F / static_cast<float>(in_features + out_features));
+        break;
+      case InitScheme::He:
+        stddev = std::sqrt(2.F / static_cast<float>(in_features));
+        break;
+    }
+    fill_normal(W, 0.F, stddev);
+  }
 
 private:
-  struct Impl;
-  std::unique_ptr<Impl> impl_;
+  std::mt19937 engine_{std::random_device{}()};
+  std::uniform_real_distribution<float> uniform_dist_{0.F, 1.F};
+  std::normal_distribution<float> normal_dist_{0.F, 1.F};
 };
 
 }  // namespace nn::random

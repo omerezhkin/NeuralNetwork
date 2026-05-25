@@ -4,9 +4,9 @@
 #include <type_traits>
 #include <utility>
 
-namespace nn::layers {
+namespace nn::optim {
 
-class AnyGradients {
+class AnyOptimizerCache {
   struct Concept {
     virtual ~Concept() = default;
   };
@@ -22,20 +22,20 @@ class AnyGradients {
   std::unique_ptr<Concept> impl_;
 
 public:
-  AnyGradients() = default;
+  AnyOptimizerCache() = default;
 
   template<typename T,
-           typename = std::enable_if_t<!std::is_same_v<std::remove_cvref_t<T>, AnyGradients>>>
-  explicit AnyGradients(T&& value)
+           typename = std::enable_if_t<!std::is_same_v<std::remove_cvref_t<T>, AnyOptimizerCache>>>
+  explicit AnyOptimizerCache(T&& value)
       : impl_(std::make_unique<Model<std::remove_cvref_t<T>>>(std::forward<T>(value))) {}
 
-  AnyGradients(const AnyGradients&) = delete;
-  AnyGradients& operator=(const AnyGradients&) = delete;
+  AnyOptimizerCache(const AnyOptimizerCache&) = delete;
+  AnyOptimizerCache& operator=(const AnyOptimizerCache&) = delete;
 
-  AnyGradients(AnyGradients&&) noexcept = default;
-  AnyGradients& operator=(AnyGradients&&) noexcept = default;
+  AnyOptimizerCache(AnyOptimizerCache&&) noexcept = default;
+  AnyOptimizerCache& operator=(AnyOptimizerCache&&) noexcept = default;
 
-  ~AnyGradients() = default;
+  ~AnyOptimizerCache() = default;
 
   [[nodiscard]] explicit operator bool() const noexcept { return static_cast<bool>(impl_); }
 
@@ -65,13 +65,13 @@ public:
 };
 
 template<typename T>
-[[nodiscard]] const std::remove_cvref_t<T>* AnyGradients_cast(const AnyGradients* p) noexcept {
+[[nodiscard]] T* OptimizerCache_cast(AnyOptimizerCache* p) noexcept {
   return p ? p->as<T>() : nullptr;
 }
 
 template<typename T>
-[[nodiscard]] std::remove_cvref_t<T>* AnyGradients_cast(AnyGradients* p) noexcept {
+[[nodiscard]] const T* OptimizerCache_cast(const AnyOptimizerCache* p) noexcept {
   return p ? p->as<T>() : nullptr;
 }
 
-}  // namespace nn::layers
+}  // namespace nn::optim

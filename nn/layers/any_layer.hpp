@@ -4,6 +4,8 @@
 #include "core/math/Linalg.hpp"
 #include "nn/layers/any_cache.hpp"
 #include "nn/layers/any_gradients.hpp"
+#include "nn/optim/any_optimizer.hpp"
+#include "nn/optim/any_optimizer_cache.hpp"
 
 #include <stdexcept>
 #include <type_traits>
@@ -14,14 +16,15 @@ namespace nn::layers {
 template<class Base>
 class IAnyLayer : public Base {
 public:
-  virtual nn::MatrixXf predict(const nn::MatrixXf& x) = 0;
+  virtual nn::MatrixXf predict(const nn::MatrixXf& x) const = 0;
 
   virtual std::pair<nn::MatrixXf, AnyCache> forward(const nn::MatrixXf& x) = 0;
 
   virtual std::pair<nn::MatrixXf, AnyGradients> backward(const AnyCache& cache,
                                                          const nn::MatrixXf& dLdY) = 0;
 
-  virtual void update(const AnyGradients& grads, float learning_rate) = 0;
+  virtual void update(const AnyGradients& grads, nn::optim::AnyOptimizer& opt,
+                      nn::optim::AnyOptimizerCache& cache) = 0;
 };
 
 template<class Base, class TObject>
@@ -31,7 +34,7 @@ class AnyLayerModel : public Base {
 public:
   using CBase::CBase;
 
-  nn::MatrixXf predict(const nn::MatrixXf& x) override {
+  nn::MatrixXf predict(const nn::MatrixXf& x) const override {
     return CBase::Object().predict(x);
   }
 
@@ -44,8 +47,9 @@ public:
     return CBase::Object().backward(cache, dLdY);
   }
 
-  void update(const AnyGradients& grads, float learning_rate) override {
-    CBase::Object().update(grads, learning_rate);
+  void update(const AnyGradients& grads, nn::optim::AnyOptimizer& opt,
+              nn::optim::AnyOptimizerCache& cache) override {
+    CBase::Object().update(grads, opt, cache);
   }
 };
 
@@ -78,7 +82,7 @@ public:
 
   [[nodiscard]] explicit operator bool() const noexcept { return isDefined(); }
 
-  nn::MatrixXf predict(const nn::MatrixXf& x) {
+  nn::MatrixXf predict(const nn::MatrixXf& x) const {
     if (!isDefined()) {
       throw std::logic_error("AnyLayer: empty");
     }
@@ -92,19 +96,19 @@ public:
     return (*this)->forward(x);
   }
 
-  std::pair<nn::MatrixXf, AnyGradients> backward(const AnyCache& cache,
-                                                 const nn::MatrixXf& dLdY) {
+  std::pair<nn::MatrixXf, AnyGradients> backward(const AnyCache& cache, const nn::MatrixXf& dLdY) {
     if (!isDefined()) {
       throw std::logic_error("AnyLayer: empty");
     }
     return (*this)->backward(cache, dLdY);
   }
 
-  void update(const AnyGradients& grads, float learning_rate) {
+  void update(const AnyGradients& grads, nn::optim::AnyOptimizer& opt,
+              nn::optim::AnyOptimizerCache& cache) {
     if (!isDefined()) {
       throw std::logic_error("AnyLayer: empty");
     }
-    (*this)->update(grads, learning_rate);
+    (*this)->update(grads, opt, cache);
   }
 };
 
