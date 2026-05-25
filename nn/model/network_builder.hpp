@@ -2,7 +2,9 @@
 
 #include "core/math/Linalg.hpp"
 #include "core/random/random.hpp"
-#include "nn/activation/builtin.hpp"
+#include "nn/activation/relu.hpp"
+#include "nn/activation/sigmoid.hpp"
+#include "nn/activation/tanh.hpp"
 #include "nn/layers/activation_layer.hpp"
 #include "nn/layers/any_layer.hpp"
 #include "nn/layers/linear.hpp"

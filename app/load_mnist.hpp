@@ -6,10 +6,10 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
-namespace nn::io {
+namespace app {
 
-/// Считывает 4-байтовое big-endian целое из потока.
 inline std::uint32_t read_be32(std::ifstream& f) {
   std::uint8_t buf[4];
   f.read(reinterpret_cast<char*>(buf), 4);
@@ -22,10 +22,6 @@ inline std::uint32_t read_be32(std::ifstream& f) {
          static_cast<std::uint32_t>(buf[3]);
 }
 
-/**
- * Загружает MNIST images из IDX3-ubyte файла.
- * Возвращает матрицу N × 784, значения в [0, 1] (float).
- */
 inline nn::MatrixXf load_mnist_images(const std::string& path) {
   std::ifstream f(path, std::ios::binary);
   if (!f) {
@@ -58,10 +54,6 @@ inline nn::MatrixXf load_mnist_images(const std::string& path) {
   return X;
 }
 
-/**
- * Загружает MNIST labels из IDX1-ubyte файла.
- * Возвращает матрицу N × 10 (one-hot).
- */
 inline nn::MatrixXf load_mnist_labels_onehot(const std::string& path) {
   std::ifstream f(path, std::ios::binary);
   if (!f) {
@@ -91,10 +83,9 @@ inline nn::MatrixXf load_mnist_labels_onehot(const std::string& path) {
   return Y;
 }
 
-/// Загружает и images, и labels за один вызов. Возвращает {X, Y_onehot}.
 inline std::pair<nn::MatrixXf, nn::MatrixXf> load_mnist(const std::string& images_path,
-                                                         const std::string& labels_path) {
+                                                        const std::string& labels_path) {
   return {load_mnist_images(images_path), load_mnist_labels_onehot(labels_path)};
 }
 
-}  // namespace nn::io
+}  // namespace app

@@ -83,7 +83,6 @@ public:
   }
 };
 
-/// Обёртка для struct-активаций из builtin.hpp (ReLU, Sigmoid, Tanh).
 template<typename Activation>
 struct ScalarActivationFn {
   [[nodiscard]] nn::Scalar forward(nn::Scalar x) const { return Activation::forward(x); }

@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "nn/loss/builtin.hpp"
+#include "nn/loss/any_loss.hpp"
+#include "nn/loss/mse.hpp"
 #include "nn/model/network_builder.hpp"
 #include "nn/optim/sgd.hpp"
 #include "train/train.hpp"

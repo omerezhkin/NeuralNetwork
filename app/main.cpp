@@ -1,3 +1,4 @@
+#include "app/load_mnist.hpp"
 #include "nn/nn.hpp"
 
 #include <iostream>
@@ -32,8 +33,8 @@ int main(int argc, char** argv) {
 
   std::cout << "Loading MNIST from: " << data_dir << '\n';
 
-  auto [X_train, Y_train] = nn::io::load_mnist(train_images, train_labels);
-  auto [X_test, Y_test] = nn::io::load_mnist(test_images, test_labels);
+  auto [X_train, Y_train] = app::load_mnist(train_images, train_labels);
+  auto [X_test, Y_test] = app::load_mnist(test_images, test_labels);
 
   std::cout << "Train: " << X_train.rows() << " x " << X_train.cols()
             << "  labels: " << Y_train.rows() << " x " << Y_train.cols() << '\n';

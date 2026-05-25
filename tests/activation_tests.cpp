@@ -1,7 +1,8 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "nn/activation/builtin.hpp"
+#include "nn/activation/relu.hpp"
+#include "nn/activation/sigmoid.hpp"
 #include "nn/layers/activation_layer.hpp"
 
 using Catch::Approx;

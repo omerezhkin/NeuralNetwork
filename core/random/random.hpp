@@ -15,7 +15,6 @@ struct Gain {
   float value = 1.F;
 };
 
-/// Потоковый ГПСЧ (header-only).
 class Rng {
 public:
   Rng() = default;
