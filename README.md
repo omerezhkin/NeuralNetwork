@@ -31,8 +31,6 @@ nn::optim::AnyOptimizer opt(nn::optim::Sgd{0.01F});
 nn::train::Trainer trainer(net, loss, opt);
 ```
 
-Сборка и тесты: [docs/build-and-tests.md](docs/build-and-tests.md).
-
 ## Структура
 
 | Каталог | Назначение |
